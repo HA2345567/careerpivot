@@ -9,7 +9,9 @@ import {
   Clock,
   DollarSign,
   BrainCircuit,
-  Lock
+  Lock,
+  Calculator,
+  Search
 } from "lucide-react";
 import { Feature, Step, Testimonial, PricingTier, FAQItem } from "./types";
 
@@ -58,7 +60,7 @@ export const FEATURES: Feature[] = [
   {
     title: "Salary Bridge Calculator",
     description: "Calculate exactly how much you need to save to bridge the gap between your high salary and a new path.",
-    icon: CalculatorIcon
+    icon: Calculator
   },
   {
     title: "The 'Safe Exit' Roadmap",
@@ -68,7 +70,7 @@ export const FEATURES: Feature[] = [
   {
     title: "Hidden Skills Audit",
     description: "Our AI analyzes your finance/legal background to find transferable skills for tech or startups.",
-    icon: SearchIcon
+    icon: Search
   },
   {
     title: "Salary Negotiation AI",
@@ -208,51 +210,4 @@ export const FAQS: FAQItem[] = [
   }
 ];
 
-// Helper icons needed for the component
-function CalculatorIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="16" height="20" x="4" y="2" rx="2" />
-      <line x1="8" x2="16" y1="6" y2="6" />
-      <line x1="16" x2="16" y1="14" y2="18" />
-      <path d="M16 10h.01" />
-      <path d="M12 10h.01" />
-      <path d="M8 10h.01" />
-      <path d="M12 14h.01" />
-      <path d="M8 14h.01" />
-      <path d="M12 18h.01" />
-      <path d="M8 18h.01" />
-    </svg>
-  )
-}
 
-function SearchIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
-}

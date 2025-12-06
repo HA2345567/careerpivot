@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="CareerPivot Banner" src="carrierpivot.png" />
+<img width="1200" height="475" alt="CareerPivot Banner" src="public/carrierpivot.png" />
 </div>
 
 # CareerPivot: The AI-Powered Career Transformation Platform
