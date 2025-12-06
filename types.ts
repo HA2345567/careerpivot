@@ -33,6 +33,7 @@ export interface PricingTier {
   description: string;
   features: string[];
   cta: string;
+  priceId: string;
   highlighted?: boolean;
   bestFor: string;
 }
@@ -50,6 +51,7 @@ export interface UserContextType {
   currentRole: string;
   targetRole: string;
   currentSalary: number;
+  monthlyExpenses: number;
   burnoutLevel: number; // 1-10
   startDate: Date;
   role: UserRole;
@@ -99,4 +101,4 @@ export interface BillingHistory {
   plan: string;
 }
 
-export type AppView = 'landing' | 'onboarding' | 'dashboard';
+export type AppView = 'landing' | 'onboarding' | 'dashboard' | 'payment_success';

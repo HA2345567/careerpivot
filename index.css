@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@config "./tailwind.config.js";
+
+@layer base {
+  :root {
+    /* Deep Midnight Theme */
+    --background: 240 10% 2%;
+    /* Almost black #050507 */
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Vibrant Indigo/Violet Primary */
+    --primary: 250 80% 60%;
+    /* #6366f1 to #7c3aed spectrum */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 240 5% 10%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 5% 10%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 240 5% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 12%;
+    --input: 240 5% 12%;
+    --ring: 250 80% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+  }
+
+  /* Premium Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Glass Utilities */
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-zinc-900/40 backdrop-blur-md border border-white/5 shadow-2xl;
+  }
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-white;
+}

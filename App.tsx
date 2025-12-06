@@ -15,6 +15,9 @@ import { APP_NAME } from './constants';
 import { Button } from './components/ui/Primitives';
 import { AppView, UserContextType } from './types';
 import { storage } from './services/storage';
+import { PaymentSuccess } from './components/PaymentSuccess';
+import { db } from './services/db';
+import { checkoutSubscription } from './services/payment';
 
 function Navbar({ onLogin }: { onLogin: () => void }) {
   return (
@@ -50,27 +53,36 @@ function App() {
       setUser(savedUser);
       setView('dashboard');
     }
+
+    // Check URL for payment success (mock or real)
+    if (window.location.search.includes('success=true')) {
+      setView('payment_success');
+    }
   }, []);
 
   const handleStart = () => {
     setView('onboarding');
   };
 
-  const handleOnboardingComplete = (userData: UserContextType) => {
+  const handleOnboardingComplete = async (userData: UserContextType) => {
     // Check for admin email during onboarding simulation
     const role = userData.name.toLowerCase().includes('admin') ? 'admin' : 'user';
-    
+
     // If Admin, inject admin credentials for demo
     const finalUser = role === 'admin' ? {
-       ...userData,
-       role: 'admin',
-       name: 'System Administrator',
-       currentRole: 'Super User',
-       targetRole: 'System Health'
+      ...userData,
+      role: 'admin',
+      name: 'System Administrator',
+      currentRole: 'Super User',
+      targetRole: 'System Health'
     } : { ...userData, role: 'user' };
 
     setUser(finalUser as UserContextType);
     storage.saveUser(finalUser as UserContextType);
+
+    // Try syncing to DB (fire and forget)
+    db.upsertProfile(finalUser as UserContextType);
+
     setView('dashboard');
   };
 
@@ -80,24 +92,46 @@ function App() {
     setView('landing');
   };
 
+  const handlePaymentSuccess = () => {
+    // Update local user state to reflect premium if needed
+    if (user) {
+      const updatedUser = { ...user, plan: 'growth_club' as const };
+      setUser(updatedUser);
+      storage.saveUser(updatedUser);
+    }
+    setView('dashboard');
+  };
+
   if (view === 'dashboard' && user) {
     return <Dashboard user={user} onLogout={handleLogout} />;
+  }
+
+  if (view === 'payment_success') {
+    return <PaymentSuccess onContinue={handlePaymentSuccess} />;
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       {view === 'onboarding' && <OnboardingModal onComplete={handleOnboardingComplete} />}
-      
+
       <Navbar onLogin={handleStart} />
       <main>
         <div id="hero-cta-wrapper">
-           <Hero />
+          <Hero />
         </div>
         <ProblemSection />
         <HowItWorks />
         <FeaturesSection />
         <SocialProof />
-        <Pricing />
+        <Pricing onPlanSelect={async (priceId) => {
+          console.log('Initiating checkout for:', priceId);
+          try {
+            await checkoutSubscription(priceId);
+          } catch (err) {
+            console.error(err);
+            alert("Checkout failed. Please check your configuration.");
+          }
+        }} />
         <FAQ />
         <CTA onStart={handleStart} />
       </main>
