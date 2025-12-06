@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CareerPivot | Escape the Golden Handcuffs</title>
+    <meta name="description" content="Personalized career strategies for professionals feeling trapped. Build your exit plan today." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'shimmer': 'shimmer 2s linear infinite',
+            },
+            keyframes: {
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        :root {
+          /* Deep Midnight Theme */
+          --background: 240 10% 2%; /* Almost black #050507 */
+          --foreground: 0 0% 98%;
+          
+          --card: 240 10% 3%;
+          --card-foreground: 0 0% 98%;
+          
+          --popover: 240 10% 3%;
+          --popover-foreground: 0 0% 98%;
+          
+          /* Vibrant Indigo/Violet Primary */
+          --primary: 250 80% 60%; /* #6366f1 to #7c3aed spectrum */
+          --primary-foreground: 210 40% 98%;
+          
+          --secondary: 240 5% 10%;
+          --secondary-foreground: 0 0% 98%;
+          
+          --muted: 240 5% 10%;
+          --muted-foreground: 240 5% 60%;
+          
+          --accent: 240 5% 15%;
+          --accent-foreground: 0 0% 98%;
+          
+          --destructive: 0 84% 60%;
+          --destructive-foreground: 0 0% 98%;
+          
+          --border: 240 5% 12%;
+          --input: 240 5% 12%;
+          --ring: 250 80% 60%;
+          
+          --radius: 0.75rem;
+        }
+        
+        html, body, #root {
+          height: 100%;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          scroll-behavior: smooth;
+        }
+
+        /* Premium Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Glass Utilities */
+        .glass-panel {
+          @apply bg-white/5 backdrop-blur-xl border border-white/10;
+        }
+        
+        .glass-card {
+           @apply bg-zinc-900/40 backdrop-blur-md border border-white/5 shadow-2xl;
+        }
+      }
+      
+      body {
+        @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-white;
+      }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "ogl": "https://aistudiocdn.com/ogl@1.0.11",
+    "three": "https://aistudiocdn.com/three@0.173.0/build/three.module.js",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
