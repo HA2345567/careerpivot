@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { Button, Badge } from './ui/Primitives';
@@ -103,10 +104,14 @@ export const NetworkOfEscapists = () => {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         const prompt = `Generate 3 hyper-realistic mentor profiles for a career pivot networking platform.
-        CONTEXT: Pivoting FROM "${fromIndustry}" TO "${toIndustry}".
+        CONTEXT: The user is Pivoting FROM "${fromIndustry}" TO "${toIndustry}".
         
-        Create personas that successfully made this EXACT transition.
-        Include realistic company names (e.g., "Ex-McKinsey", "Now at Google").
+        CRITICAL: The profiles MUST represent people who have made THIS SPECIFIC transition or a very similar one.
+        
+        Create personas with:
+        - Realistic company names (e.g., "Ex-McKinsey", "Now at Google").
+        - A specific "Pivot Story" that explains how they bridged the gap.
+        - A "Top Tip" relevant to this specific industry jump.
         
         Generate a "Pivot Timeline" of 3-4 steps showing exactly how they did it.
         `;
@@ -201,7 +206,7 @@ export const NetworkOfEscapists = () => {
             Find Real Mentors
           </h3>
           <p className="text-zinc-400 text-sm">
-            We match you with verified professionals who have successfully bridged the specific gap you are facing.
+            Connect with professionals who have successfully made the <strong>exact jump</strong> you are planning.
           </p>
         </div>
 

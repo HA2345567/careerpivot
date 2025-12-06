@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Hero from './components/Hero';
 import ProblemSection from './components/ProblemSection';
@@ -13,6 +14,7 @@ import { Dashboard } from './components/Dashboard';
 import { APP_NAME } from './constants';
 import { Button } from './components/ui/Primitives';
 import { AppView, UserContextType } from './types';
+import { storage } from './services/storage';
 
 function Navbar({ onLogin }: { onLogin: () => void }) {
   return (
@@ -41,11 +43,11 @@ function App() {
   const [view, setView] = useState<AppView>('landing');
   const [user, setUser] = useState<UserContextType | null>(null);
 
-  // Check for persisted user session (Simulation)
+  // Check for persisted user session using the storage service
   useEffect(() => {
-    const savedUser = localStorage.getItem('career_pivot_user');
+    const savedUser = storage.getUser();
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      setUser(savedUser);
       setView('dashboard');
     }
   }, []);
@@ -55,13 +57,25 @@ function App() {
   };
 
   const handleOnboardingComplete = (userData: UserContextType) => {
-    setUser(userData);
-    localStorage.setItem('career_pivot_user', JSON.stringify(userData));
+    // Check for admin email during onboarding simulation
+    const role = userData.name.toLowerCase().includes('admin') ? 'admin' : 'user';
+    
+    // If Admin, inject admin credentials for demo
+    const finalUser = role === 'admin' ? {
+       ...userData,
+       role: 'admin',
+       name: 'System Administrator',
+       currentRole: 'Super User',
+       targetRole: 'System Health'
+    } : { ...userData, role: 'user' };
+
+    setUser(finalUser as UserContextType);
+    storage.saveUser(finalUser as UserContextType);
     setView('dashboard');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('career_pivot_user');
+    storage.clearUser();
     setUser(null);
     setView('landing');
   };
@@ -85,9 +99,7 @@ function App() {
         <SocialProof />
         <Pricing />
         <FAQ />
-        <div onClick={handleStart}>
-          <CTA />
-        </div>
+        <CTA onStart={handleStart} />
       </main>
       <Footer />
     </div>

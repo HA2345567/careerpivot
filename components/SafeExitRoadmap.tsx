@@ -1,19 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { Button, Badge } from './ui/Primitives';
-import { Map, ArrowRight, CheckCircle2, CalendarDays, Loader2, Target, Battery, Clock, ChevronDown } from 'lucide-react';
-
-interface Phase {
-  name: string;
-  duration: string;
-  focus: string;
-  tasks: string[];
-}
-
-interface Roadmap {
-  summary: string;
-  phases: Phase[];
-}
+import { Map, ArrowRight, CheckCircle2, CalendarDays, Loader2, Target, Battery, Clock, ChevronDown, Save, ShieldAlert } from 'lucide-react';
+import { storage } from '../services/storage';
+import { RoadmapData } from '../types';
 
 const TIMELINE_OPTIONS = [
   { value: '6', label: '6 Months', desc: 'Aggressive' },
@@ -23,10 +14,18 @@ const TIMELINE_OPTIONS = [
 
 export const SafeExitRoadmap = () => {
   const [goal, setGoal] = useState('');
+  const [constraints, setConstraints] = useState('');
   const [timeline, setTimeline] = useState('12');
   const [hoursPerWeek, setHoursPerWeek] = useState(5);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
+
+  useEffect(() => {
+    const saved = storage.getRoadmap();
+    if (saved) {
+        setRoadmap(saved);
+    }
+  }, []);
 
   const handleGenerate = async () => {
     if (!goal.trim()) return;
@@ -35,9 +34,22 @@ export const SafeExitRoadmap = () => {
     setRoadmap(null);
 
     try {
+      let data: RoadmapData | null = null;
       if (process.env.API_KEY) {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Create a step-by-step career transition roadmap. Context: "${goal}". Timeline: ${timeline} months. Weekly availability: ${hoursPerWeek} hours. Break it down into 4 distinct phases.`;
+        const prompt = `Create a hyper-realistic, step-by-step career transition roadmap.
+        
+        USER CONTEXT:
+        Target Goal: "${goal}"
+        Timeline: ${timeline} months
+        Available Time: ${hoursPerWeek} hours/week
+        Practical Constraints (Mortgage/Family/etc): "${constraints || 'None specified'}"
+
+        REQUIREMENTS:
+        - Break it down into 4 distinct phases.
+        - Ensure tasks respect the weekly hour limit.
+        - Specifically address the constraints provided in the strategy.
+        `;
 
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
@@ -65,38 +77,47 @@ export const SafeExitRoadmap = () => {
           }
         });
 
-        if (response.text) setRoadmap(JSON.parse(response.text));
+        if (response.text) {
+             const parsed = JSON.parse(response.text);
+             data = { ...parsed, lastUpdated: new Date().toISOString() };
+        }
       } else {
         await new Promise(resolve => setTimeout(resolve, 2500));
-        setRoadmap({
-          summary: `A balanced ${timeline}-month strategy to pivot from your current role while maintaining financial stability, dedicating ${hoursPerWeek} hours/week.`,
+        data = {
+          summary: `A balanced ${timeline}-month strategy to pivot into ${goal} while managing your identified constraints (${constraints || 'maintaining stability'}). Designed for ${hoursPerWeek} hours/week.`,
           phases: [
             {
-              name: "Phase 1: Audit & Discovery",
+              name: "Phase 1: Risk-Free Validation",
               duration: "Month 1-2",
-              focus: "Identifying transferable assets and market gaps",
-              tasks: ["Conduct 'Hidden Skills Audit'", "Informational interviews with 3 people", "Define financial runway"]
+              focus: "Testing market viability without leaving your job",
+              tasks: ["Conduct 3 'Hidden Skills' audits on job descriptions", "Informational interviews during lunch breaks", "Calculate exact financial runway"]
             },
             {
               name: "Phase 2: Strategic Upskilling",
               duration: "Month 3-5",
-              focus: "Filling critical knowledge gaps efficiently",
-              tasks: ["Complete 1 high-signal certification", "Build one portfolio project", "Rewrite LinkedIn headline"]
+              focus: "Filling gaps that justify your target salary",
+              tasks: ["Complete 1 high-signal certification (evenings)", "Build a 'shadow portfolio' based on current work", "Update LinkedIn headline to signal pivot"]
             },
             {
               name: "Phase 3: Network Activation",
               duration: "Month 6-9",
-              focus: "Building advocates inside target companies",
+              focus: "Generating internal referrals",
               tasks: ["Engage with 5 target company posts weekly", "Attend 2 virtual roundtables", "Direct outreach to hiring managers"]
             },
             {
               name: "Phase 4: The Exit Execution",
               duration: "Month 10-12",
-              focus: "Interviewing and negotiation",
-              tasks: ["Tailor resumes", "Mock interviews focused on narrative", "Secure offer"]
+              focus: "Interviewing & Salary Negotiation",
+              tasks: ["Tailor resumes to specific roles", "Mock interviews focused on transferable narrative", "Secure offer before resigning"]
             }
-          ]
-        });
+          ],
+          lastUpdated: new Date().toISOString()
+        };
+      }
+      
+      if (data) {
+        setRoadmap(data);
+        storage.saveRoadmap(data);
       }
     } catch (e) { console.error(e); } finally { setIsGenerating(false); }
   };
@@ -105,8 +126,8 @@ export const SafeExitRoadmap = () => {
     <div className="grid lg:grid-cols-12 gap-0 bg-black border border-white/10 rounded-3xl overflow-hidden shadow-2xl min-h-[600px] relative">
       
       {/* Left Column: Config */}
-      <div className="lg:col-span-4 p-8 border-r border-white/5 bg-zinc-950/50 flex flex-col">
-        <div className="mb-8">
+      <div className="lg:col-span-4 p-8 border-r border-white/5 bg-zinc-950/50 flex flex-col overflow-y-auto custom-scrollbar max-h-[800px]">
+        <div className="mb-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
             <Map className="h-5 w-5 text-primary" />
             Roadmap Designer
@@ -118,10 +139,23 @@ export const SafeExitRoadmap = () => {
           <div className="space-y-2">
             <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Transition Goal</label>
             <textarea 
-              className="w-full h-32 bg-black border border-white/10 rounded-xl p-4 text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-primary/50 resize-none text-sm transition-all shadow-inner"
+              className="w-full h-24 bg-black border border-white/10 rounded-xl p-4 text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-primary/50 resize-none text-sm transition-all shadow-inner"
               placeholder="e.g. Current: Senior Marketing Manager. Target: Product Marketing in Climate Tech."
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                Constraints & Reality
+                <ShieldAlert className="h-3 w-3 text-amber-500" />
+            </label>
+            <textarea 
+              className="w-full h-24 bg-black border border-white/10 rounded-xl p-4 text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-amber-500/50 resize-none text-sm transition-all shadow-inner"
+              placeholder="e.g. I have a mortgage ($3k/mo) and 2 kids. I can't take a pay cut. I can only study on weekends."
+              value={constraints}
+              onChange={(e) => setConstraints(e.target.value)}
             />
           </div>
 
@@ -178,7 +212,7 @@ export const SafeExitRoadmap = () => {
         {!roadmap && !isGenerating && (
            <div className="absolute inset-0 flex flex-col items-center justify-center text-center opacity-30 select-none pointer-events-none">
               <Map className="h-24 w-24 text-zinc-700 mb-6 stroke-[1]" />
-              <p className="text-zinc-500 font-medium">Define your goal to see the path.</p>
+              <p className="text-zinc-500 font-medium">Define your goal & constraints to see the path.</p>
            </div>
         )}
 
@@ -191,6 +225,11 @@ export const SafeExitRoadmap = () => {
 
         {roadmap && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl mx-auto">
+            <div className="flex justify-end mb-4">
+                 <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                    <Save className="h-3 w-3" /> Auto-saved {new Date(roadmap.lastUpdated).toLocaleTimeString()}
+                 </div>
+            </div>
             <div className="mb-10 p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20">
               <h4 className="text-primary font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
                 <Target className="h-4 w-4" /> Strategy Brief

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HERO_CONTENT } from '../constants';
 import { Button, Badge } from './ui/Primitives';
@@ -21,8 +22,8 @@ const Hero = () => {
           <div className="flex-1 flex flex-col justify-center space-y-8 max-w-2xl lg:max-w-none mx-auto lg:mx-0 text-center lg:text-left">
             <div className="space-y-6">
               <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 p-1 pl-1 pr-4 backdrop-blur-md transition-colors cursor-default w-fit mx-auto lg:mx-0">
-                <Badge variant="default" className="rounded-full px-2 py-0.5 text-[10px] mr-2 shadow-none font-bold tracking-wide bg-indigo-600 border-none text-white">v2.0 LIVE</Badge>
-                <span className="text-xs text-zinc-300 font-medium tracking-wide">Now with AI Negotiation Scripts</span>
+                <Badge variant="default" className="rounded-full px-2 py-0.5 text-[10px] mr-2 shadow-none font-bold tracking-wide bg-indigo-600 border-none text-white">Value Ladder v1.0</Badge>
+                <span className="text-xs text-zinc-300 font-medium tracking-wide">Start with our Free Guide</span>
               </div>
               
               <h1 className="text-4xl sm:text-5xl xl:text-7xl font-bold tracking-tight text-white leading-[1.1]">
@@ -33,25 +34,25 @@ const Hero = () => {
               </h1>
               
               <p className="text-lg sm:text-xl text-zinc-400 leading-relaxed font-light max-w-xl mx-auto lg:mx-0">
-                The operating system for professionals trapped in "golden handcuffs." We build your data-backed exit strategy without compromising your lifestyle.
+                {HERO_CONTENT.subheadline}
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-              {/* Email Input Replacement */}
+              {/* Email Input for Lead Magnet */}
               <div className="w-full max-w-sm relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-60 transition duration-500"></div>
                 <form className="relative flex items-center" onSubmit={(e) => { e.preventDefault(); }}>
                     <input 
                         type="email" 
-                        placeholder="Enter your email address" 
+                        placeholder="Enter email for Free Daily Guide" 
                         className="w-full h-14 bg-zinc-950 text-white rounded-lg border border-white/10 pl-4 pr-14 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-zinc-500 transition-all font-medium"
                     />
                     <Button 
                         size="sm" 
                         className="absolute right-2 h-10 w-10 p-0 rounded-md bg-primary hover:bg-primary/90 text-white shadow-lg"
                         type="submit"
-                        aria-label="Start assessment"
+                        aria-label="Get Free Guide"
                     >
                         <ArrowRight className="h-5 w-5" />
                     </Button>
@@ -59,8 +60,8 @@ const Hero = () => {
               </div>
 
               <Button variant="outline" size="lg" className="h-14 px-8 text-base border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-zinc-200 min-w-[160px]">
-                <PlayCircle className="h-5 w-5 mr-2" />
-                Watch Demo
+                <TrendingUp className="h-5 w-5 mr-2" />
+                {HERO_CONTENT.ctaSecondary}
               </Button>
             </div>
 

@@ -1,10 +1,15 @@
+
 import React from 'react';
 import { Button } from './ui/Primitives';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 
-const CTA = () => {
+interface CTAProps {
+  onStart?: () => void;
+}
+
+const CTA = ({ onStart }: CTAProps) => {
   return (
-    <section className="py-24 relative overflow-hidden cursor-pointer hover:bg-zinc-900/30 transition-colors">
+    <section className="py-24 relative overflow-hidden">
         {/* Background Accent */}
         <div className="absolute inset-0 bg-primary/5"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full bg-primary/10 blur-[100px] rounded-full"></div>
@@ -18,7 +23,11 @@ const CTA = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-             <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg gap-2 pointer-events-none">
+             <Button 
+                size="lg" 
+                className="w-full sm:w-auto px-8 py-6 text-lg gap-2 shadow-xl hover:shadow-primary/20 hover:scale-105 transition-all"
+                onClick={onStart}
+             >
                 Start My Free Assessment
                 <ArrowRight className="h-5 w-5" />
             </Button>
