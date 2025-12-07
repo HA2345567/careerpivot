@@ -19,6 +19,11 @@ export const db = {
                 full_name: user.name,
                 current_job_title: user.currentRole,
                 target_job_title: user.targetRole,
+                current_salary: user.currentSalary,
+                monthly_expenses: user.monthlyExpenses,
+                burnout_level: user.burnoutLevel,
+                start_date: user.startDate ? new Date(user.startDate).toISOString() : null,
+                plan: user.plan,
                 role: user.role
             });
 

@@ -139,7 +139,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Weekly Progress Logs"
     ],
     cta: "Start Blueprint ($15)",
-    priceId: "price_1Pxyz...", // Replace with real Stripe Price ID
+    priceId: "price_1SbjApSJpk9qsvFJebskavmy",
     bestFor: "Validating Your Pivot",
     highlighted: false
   },
@@ -156,7 +156,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Monthly Live Q&A"
     ],
     cta: "Join Growth Club",
-    priceId: "price_2Pxyz...", // Replace with real Stripe Price ID
+    priceId: "price_1SbjAqSJpk9qsvFJQN2q6f5G",
     bestFor: "Committed Career Shifters",
     highlighted: true
   },
@@ -173,7 +173,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Negotiation Coaching"
     ],
     cta: "Apply for Program",
-    priceId: "price_3Pxyz...", // Replace with real Stripe Price ID
+    priceId: "price_1SbjAqSJpk9qsvFJfUe7MDPk",
     bestFor: "Full Career Reinvention",
     highlighted: false
   }

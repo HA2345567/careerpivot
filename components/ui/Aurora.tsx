@@ -12,109 +12,115 @@ const FRAG = `#version 300 es
 precision highp float;
 
 uniform float uTime;
+uniform float uAmplitude;
 uniform vec3 uColorStops[3];
 uniform vec2 uResolution;
-uniform vec2 uMouse;
+uniform float uBlend;
 
 out vec4 fragColor;
 
-// Simplex noise and FBM functions
-vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+vec3 permute(vec3 x) {
+  return mod(((x * 34.0) + 1.0) * x, 289.0);
+}
+
 float snoise(vec2 v){
-  const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-           -0.577350269189626, 0.024390243902439);
-  vec2 i  = floor(v + dot(v, C.yy) );
+  const vec4 C = vec4(
+      0.211324865405187, 0.366025403784439,
+      -0.577350269189626, 0.024390243902439
+  );
+  vec2 i  = floor(v + dot(v, C.yy));
   vec2 x0 = v - i + dot(i, C.xx);
-  vec2 i1;
-  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
   vec4 x12 = x0.xyxy + C.xxzz;
   x12.xy -= i1;
   i = mod(i, 289.0);
-  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-  + i.x + vec3(0.0, i1.x, 1.0 ));
-  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-  m = m*m ;
-  m = m*m ;
+
+  vec3 p = permute(
+      permute(i.y + vec3(0.0, i1.y, 1.0))
+    + i.x + vec3(0.0, i1.x, 1.0)
+  );
+
+  vec3 m = max(
+      0.5 - vec3(
+          dot(x0, x0),
+          dot(x12.xy, x12.xy),
+          dot(x12.zw, x12.zw)
+      ), 
+      0.0
+  );
+  m = m * m;
+  m = m * m;
+
   vec3 x = 2.0 * fract(p * C.www) - 1.0;
   vec3 h = abs(x) - 0.5;
   vec3 ox = floor(x + 0.5);
   vec3 a0 = x - ox;
-  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+
   vec3 g;
   g.x  = a0.x  * x0.x  + h.x  * x0.y;
   g.yz = a0.yz * x12.xz + h.yz * x12.yw;
   return 130.0 * dot(m, g);
 }
 
-// Domain Warping for "Smoke" look
-float fbm(vec2 x) {
-    float v = 0.0;
-    float a = 0.5;
-    vec2 shift = vec2(100.0);
-    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
-    for (int i = 0; i < 3; ++i) {
-        v += a * snoise(x);
-        x = rot * x * 2.0 + shift;
-        a *= 0.5;
-    }
-    return v;
+struct ColorStop {
+  vec3 color;
+  float position;
+};
+
+#define COLOR_RAMP(colors, factor, finalColor) {              \
+  int index = 0;                                            \
+  for (int i = 0; i < 2; i++) {                               \
+     ColorStop currentColor = colors[i];                    \
+     bool isInBetween = currentColor.position <= factor;    \
+     index = int(mix(float(index), float(i), float(isInBetween))); \
+  }                                                         \
+  ColorStop currentColor = colors[index];                   \
+  ColorStop nextColor = colors[index + 1];                  \
+  float range = nextColor.position - currentColor.position; \
+  float lerpFactor = (factor - currentColor.position) / range; \
+  finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \
 }
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / uResolution.xy;
-    
-    // Correct aspect ratio
-    float aspect = uResolution.x / uResolution.y;
-    vec2 p = uv;
-    p.x *= aspect;
-
-    // Mouse influence
-    vec2 mouse = uMouse;
-    mouse.x *= aspect;
-    float mouseDist = length(p - mouse);
-    float mouseInteraction = smoothstep(0.5, 0.0, mouseDist) * 0.1;
-
-    // Time scaling
-    float t = uTime * 0.2;
-    
-    // Domain warping pattern
-    vec2 q = vec2(0.);
-    q.x = fbm( p + 0.00 * t );
-    q.y = fbm( p + vec2(1.0) );
-
-    vec2 r = vec2(0.);
-    r.x = fbm( p + 1.0 * q + vec2(1.7,9.2) + 0.15 * t );
-    r.y = fbm( p + 1.0 * q + vec2(8.3,2.8) + 0.126 * t);
-
-    float f = fbm(p + r + mouseInteraction);
-
-    // Color mixing based on noise value 'f'
-    vec3 color = mix(uColorStops[0], uColorStops[1], clamp((f*f)*4.0, 0.0, 1.0));
-    color = mix(color, uColorStops[2], clamp(length(q), 0.0, 1.0));
-    color = mix(color, uColorStops[2], clamp(length(r.x), 0.0, 1.0));
-
-    // Contrast boost
-    color = (f * f * f + 0.6 * f * f + 0.5 * f) * color;
-    
-    // Vignette for soft edges (crucial for "placement")
-    float vignette = 1.0 - smoothstep(0.2, 1.2, length(uv - 0.5) * 1.5);
-    
-    // Output
-    fragColor = vec4(color, vignette * 0.8); // 0.8 max opacity
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  
+  ColorStop colors[3];
+  colors[0] = ColorStop(uColorStops[0], 0.0);
+  colors[1] = ColorStop(uColorStops[1], 0.5);
+  colors[2] = ColorStop(uColorStops[2], 1.0);
+  
+  vec3 rampColor;
+  COLOR_RAMP(colors, uv.x, rampColor);
+  
+  float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
+  height = exp(height);
+  height = (uv.y * 2.0 - height + 0.2);
+  float intensity = 0.6 * height;
+  
+  float midPoint = 0.20;
+  float auroraAlpha = smoothstep(midPoint - uBlend * 0.5, midPoint + uBlend * 0.5, intensity);
+  
+  vec3 auroraColor = intensity * rampColor;
+  
+  fragColor = vec4(auroraColor * auroraAlpha, auroraAlpha);
 }
 `;
 
 interface AuroraProps {
   colorStops?: string[];
+  amplitude?: number;
+  blend?: number;
   speed?: number;
-  className?: string;
+  time?: number;
 }
 
 export default function Aurora(props: AuroraProps) {
-  const { colorStops = ['#3A29FF', '#FF9FFC', '#FF2957'], speed = 1.0 } = props;
+  const { colorStops = ['#5227FF', '#7cff67', '#5227FF'], amplitude = 1.0, blend = 0.5 } = props;
+  const propsRef = useRef(props);
+  propsRef.current = props;
+
   const ctnDom = useRef<HTMLDivElement>(null);
-  const mouseRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
-  const timeRef = useRef(0);
 
   useEffect(() => {
     const ctn = ctnDom.current;
@@ -123,79 +129,94 @@ export default function Aurora(props: AuroraProps) {
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      dpr: Math.min(window.devicePixelRatio, 1.5), // Optimization
+      antialias: true
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // Additive-ish blend
-    
-    ctn.appendChild(gl.canvas);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.canvas.style.backgroundColor = 'transparent';
+    gl.canvas.style.width = '100%';
+    gl.canvas.style.height = '100%';
+    gl.canvas.style.display = 'block';
 
-    const geometry = new Triangle(gl);
-    
-    const colorStopsArray = colorStops.map(hex => {
-      const c = new Color(hex);
-      return [c.r, c.g, c.b];
-    });
-
-    const program = new Program(gl, {
-      vertex: VERT,
-      fragment: FRAG,
-      uniforms: {
-        uTime: { value: 0 },
-        uColorStops: { value: colorStopsArray },
-        uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
-        uMouse: { value: [0.5, 0.5] }
-      }
-    });
-
-    const mesh = new Mesh(gl, { geometry, program });
+    let program: Program;
 
     function resize() {
       if (!ctn) return;
       const width = ctn.offsetWidth;
       const height = ctn.offsetHeight;
+      if (width === 0 || height === 0) return;
+
       renderer.setSize(width, height);
-      program.uniforms.uResolution.value = [width, height];
+      if (program) {
+        program.uniforms.uResolution.value = [width, height];
+      }
     }
-    window.addEventListener('resize', resize);
+
+    // Initial resize to set scale
     resize();
 
-    function onMouseMove(e: MouseEvent) {
-      if (!ctn) return;
-      const rect = ctn.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = 1.0 - (e.clientY - rect.top) / rect.height;
-      mouseRef.current = { x, y };
+    window.addEventListener('resize', resize);
+
+    const geometry = new Triangle(gl);
+    if (geometry.attributes.uv) {
+      delete geometry.attributes.uv;
     }
-    window.addEventListener('mousemove', onMouseMove);
+
+    const colorStopsArray = colorStops.map(hex => {
+      const c = new Color(hex);
+      return [c.r, c.g, c.b];
+    });
+
+    program = new Program(gl, {
+      vertex: VERT,
+      fragment: FRAG,
+      uniforms: {
+        uTime: { value: 0 },
+        uAmplitude: { value: amplitude },
+        uColorStops: { value: colorStopsArray },
+        uResolution: { value: [ctn.offsetWidth || 100, ctn.offsetHeight || 100] },
+        uBlend: { value: blend }
+      }
+    });
+
+    const mesh = new Mesh(gl, { geometry, program });
+    ctn.appendChild(gl.canvas);
 
     let animateId = 0;
     const update = (t: number) => {
       animateId = requestAnimationFrame(update);
-      timeRef.current += 0.005 * speed;
-      
-      program.uniforms.uTime.value = timeRef.current;
-      program.uniforms.uMouse.value = [
-         mouseRef.current.x,
-         mouseRef.current.y
-      ];
-      
+      const { time = t * 0.01, speed = 1.0 } = propsRef.current;
+      program.uniforms.uTime.value = time * speed * 0.1;
+      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
+      program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
+      const stops = propsRef.current.colorStops ?? colorStops;
+
+      const mappedStops = stops.map(hex => {
+        const c = new Color(hex);
+        return [c.r, c.g, c.b];
+      });
+      // OGL expects a flattened array for vec3 array uniforms sometimes, but here we pass array of arrays which OGL handles if configured right.
+      // Actually OGL usually expects flat array for uniforms. Let's flatten if needed, but `value` in OGL can take array of arrays for vec3[] in recent versions.
+      program.uniforms.uColorStops.value = mappedStops;
+
       renderer.render({ scene: mesh });
     };
     animateId = requestAnimationFrame(update);
 
+    resize(); // call again to be safe
+
     return () => {
       cancelAnimationFrame(animateId);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', onMouseMove);
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [colorStops, speed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amplitude]);
 
-  return <div ref={ctnDom} className={`w-full h-full ${props.className || ''}`} />;
+  return <div ref={ctnDom} className="aurora-container h-full w-full absolute inset-0 z-0" />;
 }

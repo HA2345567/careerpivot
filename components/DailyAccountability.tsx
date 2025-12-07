@@ -68,8 +68,6 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
     setIsProcessing(true);
 
     try {
-      // Safe check for API Key
-      // In Vite, process.env might be undefined. We check widely.
       let apiKey = '';
       try {
         // @ts-ignore
@@ -79,8 +77,24 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
         } else if (import.meta && import.meta.env && import.meta.env.VITE_GOOGLE_API_KEY) {
           apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
         }
-      } catch (e) {
-        console.warn("Env check failed", e);
+      } catch (e) { console.warn(e); }
+
+      // Content Context Enhancement
+      let contextString = "";
+      try {
+        const { roadmapService } = await import('../services/roadmapService');
+        const roadmap = await roadmapService.getRoadmap();
+        if (roadmap) {
+          const activePhase = roadmap.phases.find(p => p.tasks.some(t => !t.completed)) || roadmap.phases[roadmap.phases.length - 1];
+          contextString = `
+              USER ROADMAP CONTEXT:
+              Goal: ${roadmap.summary}
+              Current Phase: ${activePhase.name} (Focus: ${activePhase.focus})
+              Pending Tasks: ${activePhase.tasks.filter(t => !t.completed).map(t => t.text).join(", ")}.
+              `;
+        }
+      } catch (err) {
+        console.log("Could not load roadmap context", err);
       }
 
       if (apiKey) {
@@ -88,23 +102,32 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
 
         let prompt = "";
         if (mode === 'vent' && !isHiddenCommand) {
-          prompt = `You are an empathetic but action-oriented career accountability bot.
-            The user is sending you a "vent" or complaint about their job.
+          prompt = `Role: You are a "No-BS" Career Copilot. You are NOT a generic support bot. 
+            Tone: Punchy, direct, slightly rebellious, but deeply supportive. 
             
-            Your goal:
-            1. Validate their feeling briefly (3-5 words).
-            2. Give them ONE tiny, concrete "micro-step" they can do right now to move towards their career pivot goal.
-            3. Keep it under 160 characters (SMS length).
-            4. Use 1 relevant emoji.
-            
-            User Vent: "${textToSend}"`;
+            ${contextString}
+
+            The user is venting: "${textToSend}"
+
+            Your Goal:
+            1. Validate them in 3 words (e.g., "That sounds exhausting.", "Man, that sucks.").
+            2. Pivot IMMEDIATELY to action. Give them ONE 5-minute "rage-fueled" productive task to regain control.
+            3. If context exists, link it to their roadmap.
+            4. Max 140 chars. No lists. No corporate speak. One emoji max.
+            `;
         } else {
-          prompt = `You are a career strategy bot. The user wants a "micro-step" to execute their career pivot.
+          prompt = `Role: You are a Strategic Pivot Architect.
+             Tone: High-energy, confident, directive.
              
-             Your goal:
-             1. Provide ONE extremely small, 5-minute task (e.g. "Send 1 DM", "Update 1 Resume Bullet", "Find 1 Company").
-             2. Be high energy and encouraging.
-             3. Keep it under 200 characters.
+             ${contextString}
+
+             The user wants a micro-step.
+             
+             Your Goal:
+             1. Look at their pending tasks above. Pick the one they are likely procrastination on.
+             2. Break it down into a "stupidly simple" 2-minute action. (e.g. Instead of "Update Resume", say "Open your resume and rewrite just the heavy headline").
+             3. If no context, give a generic high-value specific task (e.g. "Find the CEO of your target company on LinkedIn and read their last 3 posts").
+             4. Max 150 chars. Make it sound exciting.
              `;
         }
 
@@ -113,7 +136,7 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
           contents: prompt,
         });
 
-        const botResponse = response.text || "Here is your micro-task: Update your LinkedIn headline to include one keyword from your target industry. Go! ⏱️";
+        const botResponse = response.text || "Let's keep moving. What's one thing you can do in the next 5 minutes? ⏱️";
 
         const botMsg: Message = {
           id: (Date.now() + 1).toString(),
@@ -130,8 +153,8 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
           id: (Date.now() + 1).toString(),
           sender: 'bot',
           text: mode === 'vent'
-            ? "That sounds draining. 😤 Micro-step: Spend just 15 mins listing your wins from this project. You'll need them for your portfolio."
-            : "Mission Accepted. 🎯 Your task: Find ONE person on LinkedIn who has the job you want and follow them. Do it in the next 2 minutes.",
+            ? "That sounds draining. 😤 Micro-step: Open your Roadmap and check off just one task from Phase 1 today."
+            : "Mission Accepted. 🎯 Based on your roadmap, your next tiny move is to draft just the first sentence of that outreach email.",
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botMsg]);
@@ -248,8 +271,8 @@ export const DailyAccountability = ({ mode = 'vent' }: DailyAccountabilityProps)
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${msg.sender === 'user'
-                      ? 'bg-primary text-white rounded-br-sm'
-                      : 'bg-zinc-800 text-zinc-200 rounded-bl-sm border border-zinc-700'
+                    ? 'bg-primary text-white rounded-br-sm'
+                    : 'bg-zinc-800 text-zinc-200 rounded-bl-sm border border-zinc-700'
                     }`}
                 >
                   {msg.text}

@@ -60,15 +60,29 @@ export interface UserContextType {
   plan: 'free' | 'blueprint' | 'growth_club' | 'transformation' | 'executive';
 }
 
+export interface RoadmapTask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface RoadmapPhase {
+  name: string;
+  duration: string;
+  focus: string;
+  tasks: RoadmapTask[];
+}
+
 export interface RoadmapData {
+  id?: string;
   summary: string;
-  phases: {
-    name: string;
-    duration: string;
-    focus: string;
-    tasks: string[];
-  }[];
+  phases: RoadmapPhase[];
   lastUpdated: string;
+  // Metadata for regen
+  goal?: string;
+  constraints?: string;
+  timeline?: string;
+  hoursPerWeek?: number;
 }
 
 export interface CalculatorSettings {
